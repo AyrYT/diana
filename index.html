@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Письмо для Дианы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Marck+Script&display=swap">
+<style>
+/* Layout: ночная сцена с луной и северным сиянием. Конверт по центру, затем письмо на лунной бумаге, в конце звёзды собираются в сердце-созвездие. */
+:root {
+  --night-0: #080a1c;
+  --night-1: #17133a;
+  --paper: #ece8f2;
+  --ink: #22244a;
+  --rose: #d9577e;
+  --rose-soft: #f0a3bb;
+  --star: #dfe3ff;
+  --muted: #a9acd0;
+  --env-back: #33275a;
+  --env-flap: #4b3873;
+  --env-front: #41306a;
+  --font-script: 'Marck Script', 'Segoe Script', cursive;
+  --font-body: 'Lora', Georgia, 'Times New Roman', serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; }
+
+body {
+  margin: 0;
+  background-color: var(--night-0);
+  background-image: linear-gradient(180deg, var(--night-0) 0%, var(--night-1) 100%);
+  background-attachment: fixed;
+  color: var(--star);
+  font-family: var(--font-body);
+  padding-block: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow-x: hidden;
+}
+
+/* ---------- Фон: сияние, луна, холст со звёздами ---------- */
+.aurora {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.aurora::before,
+.aurora::after {
+  content: "";
+  position: absolute;
+  width: 90vmax;
+  height: 90vmax;
+  border-radius: 50%;
+}
+.aurora::before {
+  left: -45vmax;
+  bottom: -50vmax;
+  background: radial-gradient(closest-side, rgba(217, 87, 126, .22), transparent);
+  animation: driftA 24s ease-in-out infinite alternate;
+}
+.aurora::after {
+  right: -50vmax;
+  top: -50vmax;
+  background: radial-gradient(closest-side, rgba(110, 90, 220, .26), transparent);
+  animation: driftB 30s ease-in-out infinite alternate;
+}
+@keyframes driftA { from { transform: translate(0, 0) scale(1); } to { transform: translate(24vmax, -12vmax) scale(1.2); } }
+@keyframes driftB { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-20vmax, 16vmax) scale(.9); } }
+
+.moon {
+  position: fixed;
+  top: 7vh;
+  right: calc(max(16px, env(safe-area-inset-right, 0px)) + 5vw);
+  width: clamp(54px, 11vw, 92px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 32%, #fbf9ff 0%, #e4e0f3 55%, #b9b8dc 100%);
+  box-shadow: 0 0 50px 10px rgba(223, 227, 255, .22);
+  z-index: 0;
+  pointer-events: none;
+  animation: moonGlow 7s ease-in-out infinite alternate;
+}
+@keyframes moonGlow {
+  from { box-shadow: 0 0 40px 6px rgba(223, 227, 255, .16); transform: translateY(0); }
+  to { box-shadow: 0 0 80px 22px rgba(223, 227, 255, .34); transform: translateY(8px); }
+}
+
+#sky {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+main { position: relative; z-index: 1; }
+
+/* ---------- Сцена с конвертом ---------- */
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding-block: 12vh 10vh;
+  text-align: center;
+  transition: opacity .7s ease, transform .7s ease;
+}
+.stage.leaving { opacity: 0; transform: translateY(-14px); }
+
+.kicker {
+  margin: 0;
+  font-size: .8rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.env-wrap {
+  position: relative;
+  perspective: 900px;
+  margin-top: 4.5rem;
+  animation: bob 4.6s ease-in-out infinite;
+}
+.env-wrap.paused { animation-play-state: paused; }
+.env-wrap::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 120%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(217, 87, 126, .28), transparent);
+  pointer-events: none;
+  animation: breathe 4s ease-in-out infinite alternate;
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(-.7deg); }
+  50% { transform: translateY(-10px) rotate(.7deg); }
+}
+@keyframes breathe {
+  from { opacity: .5; transform: translate(-50%, -50%) scale(.9); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+.env {
+  position: relative;
+  width: min(340px, 82vw);
+  aspect-ratio: 3 / 2;
+  max-width: 100%;
+}
+.env > * { position: absolute; }
+
+.env-back {
+  inset: 0;
+  background: var(--env-back);
+  border-radius: 6px;
+  z-index: 1;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+}
+.env-paper {
+  left: 7%; right: 7%; top: 6%; height: 84%;
+  background: var(--paper);
+  border-radius: 3px;
+  z-index: 3;
+  transition: transform 1s cubic-bezier(.3, .7, .2, 1) .7s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+}
+.env-paper::before {
+  content: "";
+  position: absolute;
+  left: 12%; right: 12%; top: 18%;
+  height: 40%;
+  background: repeating-linear-gradient(180deg, rgba(34, 36, 74, .22) 0 2px, transparent 2px 14px);
+}
+.env-front {
+  inset: 0;
+  background: var(--env-front);
+  border-radius: 6px;
+  z-index: 4;
+  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
+}
+.env-flap {
+  left: 0; right: 0; top: 0;
+  height: 56%;
+  background: var(--env-flap);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  z-index: 5;
+  transition: transform .8s ease, z-index 0s linear .4s;
+}
+.env-seal {
+  left: 50%; top: 46%;
+  width: 46px; height: 46px;
+  margin-left: -23px;
+  border-radius: 50%;
+  background: var(--rose);
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .4), 0 0 0 0 rgba(217, 87, 126, .55);
+  transition: opacity .35s ease;
+  animation: sealPulse 2.2s ease-out infinite;
+}
+.env-seal svg {
+  width: 22px; height: 22px;
+  fill: var(--paper);
+  animation: heartbeat 2.2s ease-in-out infinite;
+}
+@keyframes sealPulse {
+  0% { box-shadow: 0 3px 10px rgba(0, 0, 0, .4), 0 0 0 0 rgba(217, 87, 126, .55); }
+  70%, 100% { box-shadow: 0 3px 10px rgba(0, 0, 0, .4), 0 0 0 20px rgba(217, 87, 126, 0); }
+}
+@keyframes heartbeat {
+  0%, 40%, 100% { transform: scale(1); }
+  12% { transform: scale(1.22); }
+  26% { transform: scale(1.08); }
+}
+.env-to {
+  left: 0; right: 0; bottom: 9%;
+  text-align: center;
+  font-family: var(--font-script);
+  font-size: 1.9rem;
+  color: var(--star);
+  z-index: 6;
+}
+.env.open .env-flap { transform: rotateX(180deg); z-index: 2; }
+.env.open .env-seal { opacity: 0; animation: none; }
+.env.open .env-paper { transform: translateY(-52%); }
+
+.open-btn {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  letter-spacing: .04em;
+  color: var(--night-0);
+  background: var(--rose-soft);
+  border: 0;
+  border-radius: 999px;
+  padding: .85rem 2rem;
+  cursor: pointer;
+  transition: transform .2s ease, background-color .2s ease, opacity .3s ease;
+}
+.open-btn:hover { background: var(--paper); transform: translateY(-2px); }
+.open-btn:focus-visible { outline: 3px solid var(--star); outline-offset: 3px; }
+.open-btn:disabled { opacity: .4; cursor: default; transform: none; }
+
+/* ---------- Письмо ---------- */
+.letter {
+  max-width: 680px;
+  margin: 0 auto;
+  padding-block: 9vh 12vh;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.letter.show { opacity: 1; }
+
+.sheet {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: clamp(1.6rem, 6vw, 3.4rem);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+  transform-origin: top center;
+  transform: perspective(1400px) rotateX(-10deg) translateY(36px);
+  transition: transform 1.4s cubic-bezier(.2, .8, .2, 1);
+}
+.letter.show .sheet { transform: none; }
+
+.greeting {
+  margin: 0 0 1.6rem;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 11vw, 4rem);
+  line-height: 1.1;
+  color: var(--rose);
+}
+.greeting span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+}
+.letter.show .greeting span {
+  animation: letterIn .6s ease forwards;
+  animation-delay: calc(var(--i) * 0.12s + .5s);
+}
+@keyframes letterIn { to { opacity: 1; transform: none; } }
+
+.sheet p.line {
+  margin: 0 0 1.4rem;
+  font-size: clamp(1.02rem, 3.6vw, 1.15rem);
+  line-height: 1.85;
+  text-wrap: pretty;
+}
+.sheet p.line:last-child { margin-bottom: 0; }
+.sheet p.line.lead { font-style: italic; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  filter: blur(3px);
+  transition: opacity 1s ease, transform 1s ease, filter 1s ease;
+}
+.reveal.in { opacity: 1; transform: none; filter: none; }
+
+/* Важные слова подчёркиваются маркером, когда абзац появился */
+.hl {
+  color: inherit;
+  background-color: transparent;
+  background-image: linear-gradient(transparent 60%, rgba(217, 87, 126, .3) 60%);
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-size 1.3s ease .8s;
+}
+.reveal.in .hl { background-size: 100% 100%; }
+
+/* ---------- Финал: созвездие-сердце ---------- */
+.finale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  max-width: 680px;
+  margin: 0 auto;
+  padding-block: 14vh 2vh;
+  text-align: center;
+}
+.const-space {
+  width: min(78vw, 340px);
+  aspect-ratio: 36 / 34;
+  max-width: 100%;
+}
+.love {
+  margin: .6rem 0 0;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 11vw, 4.2rem);
+  line-height: 1.2;
+  color: var(--rose-soft);
+  text-shadow: 0 0 26px rgba(217, 87, 126, .5);
+  text-wrap: balance;
+}
+.love .w {
+  display: inline-block;
+  margin: 0 .12em;
+  opacity: 0;
+  transform: translateY(16px) scale(.96);
+}
+.finale.in .love .w {
+  animation: wordIn 1.1s ease forwards;
+  animation-delay: calc(var(--i) * 0.4s + 3.6s);
+}
+.finale.in .love { animation: glow 3.2s ease-in-out 6s infinite alternate; }
+@keyframes wordIn { to { opacity: 1; transform: none; } }
+@keyframes glow {
+  from { text-shadow: 0 0 18px rgba(217, 87, 126, .35); }
+  to { text-shadow: 0 0 40px rgba(240, 163, 187, .75); }
+}
+.sign {
+  margin: .2rem 0 0;
+  font-family: var(--font-script);
+  font-size: 1.8rem;
+  color: var(--muted);
+  opacity: 0;
+}
+.finale.in .sign { animation: wordIn 1.2s ease 6s forwards; }
+
+.replay {
+  display: block;
+  margin-top: 2.4rem;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid rgba(169, 172, 208, .4);
+  border-radius: 999px;
+  padding: .6rem 1.4rem;
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease;
+}
+.replay:hover { color: var(--star); border-color: var(--star); }
+.replay:focus-visible { outline: 3px solid var(--star); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stage, .letter, .env-paper, .env-flap, .env-seal, .sheet { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .env-wrap, .env-wrap::before, .env-seal, .env-seal svg, .moon, .aurora::before, .aurora::after { animation: none !important; }
+  .sheet { transform: none; }
+  .reveal { opacity: 1; transform: none; filter: none; transition: none; }
+  .hl { background-size: 100% 100%; transition: none; }
+  .greeting span { opacity: 1; transform: none; animation: none !important; }
+  .love .w, .sign { opacity: 1; transform: none; animation: none !important; }
+  .love { animation: none !important; }
+}
+[hidden] { display: none !important; }
+</style>
+
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+<div class="moon" aria-hidden="true"></div>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<main>
+  <section class="stage" id="stage">
+    <p class="kicker">Для Дианы</p>
+    <div class="env-wrap" id="envWrap">
+      <div class="env" id="env" aria-hidden="true">
+        <div class="env-back"></div>
+        <div class="env-paper"></div>
+        <div class="env-front"></div>
+        <div class="env-flap"></div>
+        <div class="env-seal">
+          <svg viewBox="0 0 100 96"><path d="M50 88 C20 62 6 44 6 28 C6 14 17 6 29 6 C38 6 46 11 50 19 C54 11 62 6 71 6 C83 6 94 14 94 28 C94 44 80 62 50 88 Z"/></svg>
+        </div>
+        <div class="env-to">Диане</div>
+      </div>
+    </div>
+    <button class="open-btn" id="openBtn" type="button">Открыть письмо</button>
+  </section>
+
+  <section class="letter" id="letter" hidden aria-label="Письмо для Дианы">
+    <article class="sheet">
+      <h1 class="greeting" id="greeting" aria-label="Диана,"></h1>
+
+      <p class="line lead reveal">Я долго думал, с чего начать, и понял, что начинать нужно с той ночи. С той самой, когда я ещё не знал, что со мной происходит.</p>
+
+      <p class="line reveal">В ту ночь я даже не понимал, что <mark class="hl">так сильно влюбляюсь в тебя</mark>. Всё казалось обычным: разговор, твой смех, тишина между словами. А потом я поймал себя на мысли, что не хочу, чтобы эта ночь заканчивалась. Я просто был рядом с тобой, и мне было спокойно так, как не было уже очень давно.</p>
+
+      <p class="line reveal">Время, проведённое с тобой, <mark class="hl">летело так быстро</mark>. Я смотрел на часы и не верил: как уже утро, как прошёл целый день, как прошла неделя. Рядом с тобой минуты исчезали, и я хотел только одного, чтобы их было больше.</p>
+
+      <p class="line reveal">Всё случилось так быстро, что мы даже не поняли, что <mark class="hl">уже вместе</mark>. Никто из нас не говорил громких слов и не назначал дату. Просто в какой-то момент я начал думать «мы», а не «я и ты». И мне кажется, это самое честное начало, какое только бывает.</p>
+
+      <p class="line reveal">Теперь я знаю, что в ту ночь со мной случилось что-то очень важное. Ты вошла в мою жизнь тихо, без шума, и сделала её светлее. Я благодарен тебе за каждый взгляд, за каждое сообщение, за то, как ты улыбаешься, когда думаешь, что я не смотрю.</p>
+
+      <p class="line reveal">Я хочу ещё много таких ночей. Хочу узнавать тебя дальше: твои мечты, твои страхи, твои любимые мелочи. Хочу быть рядом, когда всё хорошо, и когда день не задался. Хочу, чтобы ты всегда знала, что у тебя есть <mark class="hl">человек, который на твоей стороне</mark>.</p>
+
+      <p class="line reveal">Я не умею красиво говорить о чувствах, но очень хочу, чтобы ты услышала самое главное.</p>
+    </article>
+
+    <div class="finale" id="finale">
+      <div class="const-space" id="constSpace" aria-hidden="true"></div>
+      <p class="love" id="love" aria-label="Я люблю тебя, Диана"></p>
+      <p class="sign">Навсегда твой</p>
+      <button class="replay" id="replay" type="button">Прочитать ещё раз</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Небо: звёзды, падающая звезда, искры, сердца, созвездие ---------- */
+  var cv = document.getElementById('sky');
+  var ctx = cv.getContext('2d');
+  var space = document.getElementById('constSpace');
+  var W = 0, H = 0, dpr = 1;
+  var stars = [];
+  var hearts = [];
+  var sparks = [];
+  var cstars = [];
+  var shoot = null;
+  var nextShoot = 3000;
+  var cP = 0;
+  var cDir = 0;
+  var lastT = 0;
+  var OUT = 44, IN = 22;
+  var heartPath = new Path2D('M50 88 C20 62 6 44 6 28 C6 14 17 6 29 6 C38 6 46 11 50 19 C54 11 62 6 71 6 C83 6 94 14 94 28 C94 44 80 62 50 88 Z');
+
+  function buildConst() {
+    cstars = [];
+    for (var i = 0; i < OUT + IN; i++) {
+      var ring = i < OUT;
+      var n = ring ? OUT : IN;
+      var k = ring ? i : i - OUT;
+      var tt = k / n * 6.2832;
+      var hx = 16 * Math.pow(Math.sin(tt), 3);
+      var hy = 13 * Math.cos(tt) - 5 * Math.cos(2 * tt) - 2 * Math.cos(3 * tt) - Math.cos(4 * tt);
+      var sc = ring ? 1 : 0.52;
+      cstars.push({
+        hx: Math.random() * W,
+        hy: Math.random() * H,
+        ux: hx * sc,
+        uy: (hy + 2.5) * sc,
+        r: Math.random() * 1.1 + 1.2,
+        p: Math.random() * 6.28,
+        d: Math.random() * 0.35
+      });
+    }
+  }
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cv.width = W * dpr;
+    cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.max(90, Math.round(W * H / 7000));
+    stars = [];
+    for (var i = 0; i < n; i++) {
+      stars.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + .3, p: Math.random() * 6.28, s: Math.random() * 1.6 + .4 });
+    }
+    buildConst();
+    if (reduced) drawFrame(0);
+  }
+
+  function drawConst(t) {
+    var r = space.getBoundingClientRect();
+    var cx = r.left + r.width / 2;
+    var cy = r.top + r.height / 2;
+    var u = r.width / 36;
+    var beat = (cP >= 1 && !reduced) ? 1 + 0.035 * Math.pow(Math.max(0, Math.sin(t / 430)), 4) : 1;
+    var pos = [];
+    var i, s;
+    for (i = 0; i < cstars.length; i++) {
+      s = cstars[i];
+      var pp = Math.min(1, Math.max(0, (cP - s.d) / 0.65));
+      var e = pp * pp * (3 - 2 * pp);
+      pos.push({
+        x: s.hx + (cx + s.ux * u * beat - s.hx) * e,
+        y: s.hy + (cy - s.uy * u * beat - s.hy) * e,
+        e: e
+      });
+    }
+    var la = Math.min(1, Math.max(0, (cP - 0.6) / 0.4));
+    if (la > 0) {
+      var passes = [[3.5, 0.1], [1, 0.55]];
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (var q = 0; q < passes.length; q++) {
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = passes[q][0];
+        ctx.strokeStyle = 'rgba(240,163,187,' + (passes[q][1] * la) + ')';
+        ctx.beginPath();
+        ctx.moveTo(pos[0].x, pos[0].y);
+        for (i = 1; i < OUT; i++) ctx.lineTo(pos[i].x, pos[i].y);
+        ctx.closePath();
+        ctx.moveTo(pos[OUT].x, pos[OUT].y);
+        for (i = 1; i < IN; i++) ctx.lineTo(pos[OUT + i].x, pos[OUT + i].y);
+        ctx.closePath();
+        for (i = 0; i < IN; i += 2) {
+          var o = Math.round(i * OUT / IN) % OUT;
+          ctx.moveTo(pos[OUT + i].x, pos[OUT + i].y);
+          ctx.lineTo(pos[o].x, pos[o].y);
+        }
+        ctx.stroke();
+      }
+    }
+    for (i = 0; i < cstars.length; i++) {
+      s = cstars[i];
+      var p = pos[i];
+      var tw = reduced ? 1 : 0.55 + 0.45 * Math.sin(t / 700 + s.p);
+      ctx.fillStyle = '#f0a3bb';
+      ctx.globalAlpha = 0.1 + 0.14 * p.e;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, s.r * 3.4, 0, 6.283);
+      ctx.fill();
+      ctx.fillStyle = '#fdeaf1';
+      ctx.globalAlpha = 0.65 + 0.35 * tw;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, s.r * (1 + 0.5 * p.e), 0, 6.283);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawFrame(t) {
+    ctx.clearRect(0, 0, W, H);
+    var i;
+    ctx.fillStyle = '#dfe3ff';
+    for (i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      ctx.globalAlpha = reduced ? .6 : .3 + .7 * (0.5 + 0.5 * Math.sin(t / 1000 * s.s + s.p));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, 6.283);
+      ctx.fill();
+    }
+    if (shoot) {
+      var life = (t - shoot.t0) / 1100;
+      if (life >= 1) { shoot = null; }
+      else {
+        var x = shoot.x + shoot.dx * life, y = shoot.y + shoot.dy * life;
+        var g = ctx.createLinearGradient(x, y, x - shoot.dx * .18, y - shoot.dy * .18);
+        g.addColorStop(0, 'rgba(223,227,255,' + (1 - life) + ')');
+        g.addColorStop(1, 'rgba(223,227,255,0)');
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = g;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - shoot.dx * .18, y - shoot.dy * .18);
+        ctx.stroke();
+      }
+    }
+
+    drawConst(t);
+
+    for (var j = hearts.length - 1; j >= 0; j--) {
+      var h = hearts[j];
+      h.y -= h.v;
+      h.x += Math.sin(t / 700 + h.p) * .5;
+      var a = Math.min(1, h.y / (H * .35));
+      if (h.y < -30 || a <= 0) { hearts.splice(j, 1); continue; }
+      ctx.globalAlpha = a * h.a;
+      ctx.fillStyle = h.c;
+      ctx.save();
+      ctx.translate(h.x, h.y);
+      ctx.scale(h.s, h.s);
+      ctx.translate(-50, -48);
+      ctx.fill(heartPath);
+      ctx.restore();
+    }
+
+    for (var k = sparks.length - 1; k >= 0; k--) {
+      var p = sparks[k];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.03;
+      p.vx *= 0.99;
+      p.l -= 0.018;
+      if (p.l <= 0) { sparks.splice(k, 1); continue; }
+      ctx.globalAlpha = p.l;
+      ctx.fillStyle = p.c;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * p.l + .3, 0, 6.283);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function loop(t) {
+    var dt = lastT ? Math.min(100, t - lastT) : 16;
+    lastT = t;
+    if (cDir > 0) cP = Math.min(1, cP + dt / 4200);
+    else if (cDir < 0) cP = Math.max(0, cP - dt / 1200);
+    if (!shoot && t > nextShoot) {
+      shoot = { x: Math.random() * W * .7 + W * .1, y: Math.random() * H * .35, dx: W * .35, dy: H * .2, t0: t };
+      nextShoot = t + 8000 + Math.random() * 6000;
+    }
+    drawFrame(t);
+    requestAnimationFrame(loop);
+  }
+
+  function burst() {
+    if (reduced) return;
+    var colors = ['#d9577e', '#f0a3bb', '#ff8fb0', '#c9b8ff'];
+    for (var i = 0; i < 34; i++) {
+      hearts.push({
+        x: Math.random() * W,
+        y: H + Math.random() * H * .5,
+        v: Math.random() * 1.4 + .7,
+        s: Math.random() * .22 + .1,
+        p: Math.random() * 6.28,
+        a: Math.random() * .4 + .45,
+        c: colors[(Math.random() * colors.length) | 0]
+      });
+    }
+  }
+
+  function spark(x, y, n, spread, up) {
+    if (reduced) return;
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * 6.283;
+      var v = Math.random() * spread + .4;
+      sparks.push({
+        x: x, y: y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v - (up ? 1.2 : 0),
+        l: 1,
+        r: Math.random() * 2 + 1,
+        c: Math.random() < .5 ? '#dfe3ff' : '#f0a3bb'
+      });
+    }
+    if (sparks.length > 320) sparks.splice(0, sparks.length - 320);
+  }
+
+  var lastMove = 0;
+  window.addEventListener('pointermove', function (e) {
+    var n = performance.now();
+    if (n - lastMove < 28) return;
+    lastMove = n;
+    spark(e.clientX, e.clientY, 1, .8, false);
+  }, { passive: true });
+  window.addEventListener('pointerdown', function (e) {
+    spark(e.clientX, e.clientY, 16, 3.2, true);
+  }, { passive: true });
+
+  window.addEventListener('resize', resize);
+  resize();
+  if (!reduced) requestAnimationFrame(loop);
+  else window.addEventListener('scroll', function () { requestAnimationFrame(function () { drawFrame(0); }); }, { passive: true });
+
+  /* ---------- Письмо ---------- */
+  var stage = document.getElementById('stage');
+  var envWrap = document.getElementById('envWrap');
+  var env = document.getElementById('env');
+  var btn = document.getElementById('openBtn');
+  var letter = document.getElementById('letter');
+  var greeting = document.getElementById('greeting');
+  var finale = document.getElementById('finale');
+  var love = document.getElementById('love');
+  var replay = document.getElementById('replay');
+  var observer = null;
+  var finaleObserver = null;
+  var burstTimer = null;
+  var i2;
+
+  var word = 'Диана,';
+  greeting.innerHTML = '';
+  for (i2 = 0; i2 < word.length; i2++) {
+    var sp = document.createElement('span');
+    sp.setAttribute('aria-hidden', 'true');
+    sp.style.setProperty('--i', i2);
+    sp.textContent = word.charAt(i2);
+    greeting.appendChild(sp);
+  }
+
+  var words = ['Я', 'люблю', 'тебя,', 'Диана'];
+  love.innerHTML = '';
+  for (i2 = 0; i2 < words.length; i2++) {
+    var w = document.createElement('span');
+    w.className = 'w';
+    w.setAttribute('aria-hidden', 'true');
+    w.style.setProperty('--i', i2);
+    w.textContent = words[i2];
+    love.appendChild(w);
+  }
+
+  function formHeart() {
+    finale.classList.add('in');
+    if (reduced) { cP = 1; cDir = 0; drawFrame(0); return; }
+    cDir = 1;
+    clearTimeout(burstTimer);
+    burstTimer = setTimeout(burst, 3800);
+  }
+
+  function releaseHeart() {
+    finale.classList.remove('in');
+    clearTimeout(burstTimer);
+    if (reduced) { cP = 0; cDir = 0; drawFrame(0); return; }
+    cDir = -1;
+  }
+
+  function startObserving() {
+    var items = letter.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      for (var k = 0; k < items.length; k++) items[k].classList.add('in');
+      formHeart();
+      return;
+    }
+    if (observer) observer.disconnect();
+    observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('in');
+        observer.unobserve(e.target);
+      });
+    }, { threshold: .2, rootMargin: '0px 0px -6% 0px' });
+    for (var m = 0; m < items.length; m++) observer.observe(items[m]);
+
+    if (finaleObserver) finaleObserver.disconnect();
+    finaleObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        formHeart();
+        finaleObserver.disconnect();
+      });
+    }, { threshold: .4 });
+    finaleObserver.observe(finale);
+  }
+
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    envWrap.classList.add('paused');
+    env.classList.add('open');
+    var rr = env.getBoundingClientRect();
+    spark(rr.left + rr.width / 2, rr.top + rr.height * .3, 46, 4.5, true);
+    setTimeout(function () {
+      var r2 = env.getBoundingClientRect();
+      spark(r2.left + r2.width / 2, r2.top - r2.height * .1, 40, 3.5, true);
+    }, 1000);
+    var wait = reduced ? 30 : 2300;
+    setTimeout(function () {
+      stage.classList.add('leaving');
+      setTimeout(function () {
+        stage.hidden = true;
+        letter.hidden = false;
+        window.scrollTo(0, 0);
+        requestAnimationFrame(function () {
+          letter.classList.add('show');
+          startObserving();
+        });
+      }, reduced ? 30 : 700);
+    }, wait);
+  });
+
+  replay.addEventListener('click', function () {
+    releaseHeart();
+    letter.classList.remove('show');
+    setTimeout(function () {
+      letter.hidden = true;
+      var items = letter.querySelectorAll('.reveal');
+      for (var k = 0; k < items.length; k++) items[k].classList.remove('in');
+      env.classList.remove('open');
+      envWrap.classList.remove('paused');
+      stage.classList.remove('leaving');
+      stage.hidden = false;
+      btn.disabled = false;
+      window.scrollTo(0, 0);
+    }, reduced ? 30 : 700);
+  });
+})();
+</script>
+</body>
+</html>
